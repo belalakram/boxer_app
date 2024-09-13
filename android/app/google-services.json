@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "591935716233",
+    "project_id": "boxer-49410",
+    "storage_bucket": "boxer-49410.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591935716233:android:1043a408be4b17bbe5ff58",
+        "android_client_info": {
+          "package_name": "com.example.boxer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUvt5lCCiYy5-drjukpKbMD40xpkAvlEQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
