@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart'; // Required for all material components
+import 'package:boxer/presentation/screens/inactive_screen.dart';
+import 'package:flutter/material.dart';
 import '../../core/my_scaffold.dart';
 import 'package:boxer/core/main_text_field.dart';
 import 'package:boxer/presentation/widgets/title_app.dart';
-import 'package:quickalert/quickalert.dart'; // Import QuickAlert package
+import 'package:quickalert/quickalert.dart';
+import 'package:boxer/core/services/client_model.dart';
+import 'package:boxer/core/services/firebase_firestore.dart';
 
 class BeginnerScreen extends StatefulWidget {
   const BeginnerScreen({super.key});
@@ -12,20 +15,19 @@ class BeginnerScreen extends StatefulWidget {
 }
 
 class _BeginnerScreenState extends State<BeginnerScreen> {
-  String? selectValue; // Make it nullable to handle the initial state.
+  String? selectValue;
   DateTime startTimeValue = DateTime.now();
   DateTime endTimeValue = DateTime.now().add(const Duration(days: 30));
-  final TextEditingController nameController = TextEditingController(); // Controller for the Name field
-  final TextEditingController notesController = TextEditingController(); // Controller for the Notes field
-  String? nameError; // State variable for the name error message
-  String? notesError; // State variable for the notes error message
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController notesController = TextEditingController();
+  String? nameError;
+  String? notesError;
 
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
       body: Column(
         children: [
-          // This part will remain fixed at the top
           const SizedBox(height: 40),
           Row(
             children: const [
@@ -33,7 +35,6 @@ class _BeginnerScreenState extends State<BeginnerScreen> {
               TitleApp(),
             ],
           ),
-          // This Expanded widget will make the rest of the content scrollable
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -47,14 +48,15 @@ class _BeginnerScreenState extends State<BeginnerScreen> {
                       children: [
                         MainTextField(
                           hintText: "Name",
-                          controller: nameController, // Attach controller
+                          controller: nameController,
                         ),
-                        if (nameError != null) // Conditionally show error message
+                        if (nameError != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
                               nameError!,
-                              style: const TextStyle(color: Colors.red, fontSize: 16),
+                              style: const TextStyle(
+                                  color: Colors.red, fontSize: 16),
                             ),
                           ),
                       ],
@@ -69,14 +71,15 @@ class _BeginnerScreenState extends State<BeginnerScreen> {
                         MainTextField(
                           maxLines: 2,
                           hintText: "Notes",
-                          controller: notesController, // Attach new controller
+                          controller: notesController,
                         ),
-                        if (notesError != null) // Conditionally show error message
+                        if (notesError != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
                               notesError!,
-                              style: const TextStyle(color: Colors.red, fontSize: 16),
+                              style: const TextStyle(
+                                  color: Colors.red, fontSize: 16),
                             ),
                           ),
                       ],
@@ -115,7 +118,7 @@ class _BeginnerScreenState extends State<BeginnerScreen> {
                     ),
                   ),
                   buildDatePickerRow(
-                    label: "Smart Time",
+                    label: "Start Time",
                     dateValue: startTimeValue,
                     onPressed: showStartTime,
                   ),
@@ -128,21 +131,69 @@ class _BeginnerScreenState extends State<BeginnerScreen> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      fixedSize: Size(MediaQuery.of(context).size.width * 0.8, 50), // Adjust height as needed
+                      fixedSize:
+                          Size(MediaQuery.of(context).size.width * 0.8, 50),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
-                        nameError = nameController.text.trim().isEmpty ? 'Please enter your name.' : null;
-                        notesError = notesController.text.trim().isEmpty ? 'Please enter some notes.' : null;
-                        if (nameError == null && notesError == null) {
+                        // Validate fields and update error messages
+                        nameError = nameController.text.trim().isEmpty
+                            ? 'Please enter your name.'
+                            : null;
+                        notesError = notesController.text.trim().isEmpty
+                            ? 'Please enter some notes.'
+                            : null;
+                      });
+
+                      // If there are no errors, proceed with saving
+                      if (nameError == null && notesError == null) {
+                        ClientModel newClient = ClientModel(
+                          name: nameController.text.trim(),
+                          note: notesController.text.trim(),
+                          type: selectValue ?? "Unknown",
+                          startDate: startTimeValue.millisecondsSinceEpoch,
+                          endDate: endTimeValue.millisecondsSinceEpoch,
+                        );
+
+                        try {
+                          await addClient(newClient);
+
                           QuickAlert.show(
                             context: context,
                             type: QuickAlertType.success,
                             text: 'Transaction Completed Successfully!',
+                            onConfirmBtnTap: () {
+                              Navigator.pop(context);
+                              nameController.clear();
+                              notesController.clear();
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => InactiveScreen(),
+                                  ));
+                            },
                           );
-                          // Handle save logic here if needed
+
+                          // Clear the fields and reset state
+                          nameController.clear();
+                          notesController.clear();
+                          setState(() {
+                            selectValue = null;
+                            startTimeValue = DateTime.now();
+                            endTimeValue =
+                                DateTime.now().add(const Duration(days: 30));
+                          });
+                        } catch (e) {
+                          print(
+                              "Error adding client: $e"); // Print error for debugging
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.error,
+                            title: 'Error',
+                            text: 'Failed to save data. Please try again.',
+                          );
                         }
-                      });
+                      }
                     },
                     child: const Text("Save"),
                   ),
@@ -184,6 +235,7 @@ class _BeginnerScreenState extends State<BeginnerScreen> {
   void showStartTime() async {
     DateTime? startDate = await showDatePicker(
       context: context,
+      initialDate: startTimeValue,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
@@ -197,6 +249,7 @@ class _BeginnerScreenState extends State<BeginnerScreen> {
   void showEndTime() async {
     DateTime? endDate = await showDatePicker(
       context: context,
+      initialDate: endTimeValue,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );

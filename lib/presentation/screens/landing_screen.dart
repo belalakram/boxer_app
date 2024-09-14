@@ -4,6 +4,7 @@ import 'package:boxer/presentation/widgets/title_app.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/landing_item.dart';
+import 'inactive_screen.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
@@ -16,49 +17,50 @@ class LandingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: 40,
-            ),
-            TitleApp(),
-            SizedBox(
-              height: 300,
-            ),
-            Text(
+            const SizedBox(height: 40),
+            const TitleApp(),
+            const SizedBox(height: 300),
+            const Text(
               "About you",
               textAlign: TextAlign.start,
               style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
+                fontSize: 40,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-            Text(
-                "we want to know more about you, follow the next steps to complete the information"),
-            SizedBox(
-              height: 5,
+            const Text(
+              "We want to know more about you. Follow the next steps to complete the information.",
             ),
+            const SizedBox(height: 5),
             Container(
               height: 170,
-              child: Expanded(
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    LandingItem(
-                      onPress: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context)=>  BeginnerScreen()
-                          ),),
-                      title: "I am\nBeginner",
-                      subtitle: "I have never trained",
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  LandingItem(
+                    onPress: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BeginnerScreen(),
+                      ),
                     ),
-                    LandingItem(
-                      title: "I am\ninactive",
-                      subtitle: "I have never trained",
+                    title: "I am\nBeginner",
+                    subtitle: "I have never trained",
+                  ),
+                  LandingItem(
+                    onPress: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const InactiveScreen(),
+                      ),
                     ),
-                  ],
-                ),
+                    title: "I am\nInactive",
+                    subtitle: "I have been inactive",
+                  ),
+                ],
               ),
-            )
+            ),
           ],
         ),
       ),
