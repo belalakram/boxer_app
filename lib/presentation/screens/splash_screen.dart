@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     animationController?.repeat(reverse: true);
 
     // Timer to navigate to the next screen after 5 seconds
-    Timer(const Duration(seconds: 10), goToNext);
+    Timer(const Duration(seconds: 5), goToNext);
   }
 
   void goToNext() {
